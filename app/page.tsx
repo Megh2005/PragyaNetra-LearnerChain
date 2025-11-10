@@ -28,7 +28,7 @@ const HeroSection: React.FC = () => {
           </TypingAnimation>
           <div className="flex my-6 flex-wrap justify-center gap-4">
             <InteractiveHoverButton className="rounded-full px-6 py-3 font-bold text-xl tracking-wider bg-black border-cyan-400">
-              <Link href="/explore">Explore More</Link>
+              <Link href="/auth">Explore More</Link>
             </InteractiveHoverButton>
           </div>
         </div>

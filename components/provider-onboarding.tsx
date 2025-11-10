@@ -14,7 +14,15 @@ import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, User } from "firebase/auth";
-import { doc, setDoc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { connectWallet } from "@/utils/connectWallet";
 import { getWalletBalance } from "@/lib/balance";
 import { toast } from "sonner";
@@ -27,12 +35,16 @@ import {
 } from "react-icons/fa";
 import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
+import { Contract, parseEther } from "ethers";
+import { ABI } from "@/lib/abi";
 
 interface ProviderOnboardingProps {
   initialOpen?: boolean;
 }
 
-const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({ initialOpen = false }) => {
+const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
+  initialOpen = false,
+}) => {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [user, setUser] = useState<User | null>(null);
@@ -48,6 +60,7 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({ initialOpen = f
   const [signer, setSigner] = useState<any>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [open, setOpen] = useState(initialOpen);
+  const [isPaying, setIsPaying] = useState(false);
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -119,8 +132,8 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({ initialOpen = f
         bio,
         linkedin,
         twitter,
-        learnBalance: 0,
         avatar: avatarUrl,
+        role: "provider",
       },
       { merge: true }
     );
@@ -136,17 +149,45 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({ initialOpen = f
   };
 
   const handleWalletNext = async () => {
-    if (isConnected && userAddress && username) {
-      await setDoc(
-        doc(db, "providers", username),
-        {
-          walletAddress: userAddress,
-        },
-        { merge: true }
-      );
-      onFinish();
-    } else {
+    if (!isConnected || !userAddress || !username || !signer) {
       toast.error("Please connect your wallet first.");
+      return;
+    }
+
+    const fee = 10;
+    const balanceFloat = parseFloat(balance || "0");
+
+    if (balanceFloat < fee) {
+        toast.error(`You need at least ${fee} FLOW to join.`);
+        return;
+    }
+
+    setIsPaying(true);
+    const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
+    const contract = new Contract(contractAddress, ABI, signer);
+    const toastId = toast.loading("Processing payment...");
+
+    try {
+        const tx = await contract.stake({
+            value: parseEther(fee.toString()),
+        });
+        await tx.wait();
+        toast.success("Payment successful!", { id: toastId });
+
+        await setDoc(
+            doc(db, "providers", username),
+            {
+                walletAddress: userAddress,
+            },
+            { merge: true }
+        );
+        onFinish();
+
+    } catch (error) {
+        console.error("Payment failed:", error);
+        toast.error("Payment failed. Please try again.", { id: toastId });
+    } finally {
+        setIsPaying(false);
     }
   };
 
@@ -259,8 +300,11 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({ initialOpen = f
           {step === 3 && (
             <div className="flex flex-col items-center justify-center">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <FaWallet className="mr-2" /> Step 3: Connect your wallet
+                <FaWallet className="mr-2" /> Step 3: Connect & Pay
               </h3>
+              <p className="text-center text-sm text-gray-400 mb-4">
+                A one-time fee of 10 FLOW is required to become a provider.
+              </p>
               <InteractiveHoverButton
                 onClick={handleConnectWallet}
                 className="w-full"
@@ -280,8 +324,8 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({ initialOpen = f
                 <InteractiveHoverButton onClick={prevStep}>
                   Previous
                 </InteractiveHoverButton>
-                <InteractiveHoverButton onClick={handleWalletNext}>
-                  Finish
+                <InteractiveHoverButton onClick={handleWalletNext} disabled={!isConnected || isPaying || parseFloat(balance || "0") < 10}>
+                  {isPaying ? "Processing..." : "Pay 10 FLOW & Finish"}
                 </InteractiveHoverButton>
               </div>
             </div>

@@ -2,39 +2,24 @@
 
 import React, { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import { Bars } from "react-loader-spinner";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
   FaUser,
   FaBook,
-  FaCoins,
-  FaSignOutAlt,
   FaLinkedin,
   FaTwitter,
   FaWallet,
   FaEnvelope,
 } from "react-icons/fa";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getWalletBalance } from "@/lib/balance";
-import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
 
 interface Provider {
   id: string;
@@ -44,7 +29,6 @@ interface Provider {
   bio: string;
   linkedin: string;
   twitter?: string;
-  learnBalance: number;
   avatar: string;
   walletAddress?: string;
 }
@@ -56,235 +40,168 @@ const DashboardPage = () => {
   const [balance, setBalance] = useState<string | null>(null);
 
   useEffect(() => {
-    let authCheckCompleted = false;
-    let minTimeElapsed = false;
-
-    const timer = setTimeout(() => {
-      minTimeElapsed = true;
-      if (authCheckCompleted) {
-        setLoading(false);
-      }
-    }, 5000); // 5 seconds
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const providersRef = collection(db, "providers");
-        const q = query(providersRef, where("email", "==", user.email));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const providerDoc = querySnapshot.docs[0];
-          const providerData = {
-            id: providerDoc.id,
-            ...providerDoc.data(),
-          } as Provider;
+      const dataFetchLogic = async () => {
+        if (user) {
+          const providersRef = collection(db, "providers");
+          const q = query(providersRef, where("email", "==", user.email));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            const providerDoc = querySnapshot.docs[0];
+            const providerData = {
+              id: providerDoc.id,
+              ...providerDoc.data(),
+            } as Provider;
 
-          setProvider(providerData);
-          if (providerData.walletAddress) {
-            getWalletBalance(providerData.walletAddress).then(setBalance);
+            setProvider(providerData);
+            if (providerData.walletAddress) {
+              const cachedBalance = sessionStorage.getItem("walletBalance");
+              if (cachedBalance) {
+                setBalance(cachedBalance);
+              } else {
+                const newBalance = await getWalletBalance(providerData.walletAddress);
+                setBalance(newBalance);
+                sessionStorage.setItem("walletBalance", newBalance);
+              }
+            }
+          } else {
+            console.warn("Provider data not found for authenticated user.");
           }
-        } else {
-          router.push("/auth");
         }
-      } else {
-        router.push("/auth");
-      }
-      authCheckCompleted = true;
-      if (minTimeElapsed) {
-        setLoading(false);
-      }
+      };
+
+      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds minimum delay
+
+      await Promise.all([dataFetchLogic(), minDelayPromise]);
+      setLoading(false);
     });
 
-    return () => {
-      unsubscribe();
-      clearTimeout(timer);
-    };
-  }, [router]);
-
-  useEffect(() => {
-    if (provider?.walletAddress) {
-      getWalletBalance(provider.walletAddress).then(setBalance);
-    }
-  }, [provider]);
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push("/");
-  };
-
-  const handleRechargeRedirect = () => {
-    router.push("/recharge");
-  };
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
-        <div className="text-lg tracking-wide">
-          <Bars
-            height="60"
-            width="60"
-            color="#22D3EE"
-            ariaLabel="bars-loading"
-            wrapperStyle={{}}
-            wrapperClass=""
-            visible={true}
-          />
-        </div>
+      <div className="flex w-full items-center justify-center">
+        <Bars
+          height="60"
+          width="60"
+          color="#22D3EE"
+          ariaLabel="bars-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+          visible={true}
+        />
       </div>
     );
   }
 
   if (!provider) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
-        <div className="text-lg tracking-wide">No provider data found.</div>
+      <div className="flex w-full items-center justify-center">
+        <div className="text-lg tracking-wide text-white">
+          Could not load provider data. Please try again later.
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen p-4 md:p-8">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]"></div>
-      </div>
-      <div className="relative mx-auto max-w-6xl space-y-6">
-        {/* Profile Card */}
-        <Card className="border-cyan-400/20 bg-black/40 backdrop-blur-lg">
-          <CardContent className="p-6 md:p-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-start">
-              {/* Avatar */}
-              <Avatar className="h-24 w-24 border-2 border-cyan-400/50">
+    <div className="w-full max-w-4xl mx-auto">
+      <Card className="w-full border-cyan-400/20 bg-black/40 backdrop-blur-lg text-white rounded-2xl shadow-2xl shadow-cyan-500/10">
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            {/* Left Column */}
+            <div className="md:col-span-1 flex flex-col items-center text-center space-y-4">
+              <Avatar className="h-32 w-32 border-4 border-cyan-400/50 shadow-lg">
                 <AvatarImage src={provider.avatar} alt={provider.name} />
-                <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-purple-600 text-2xl text-white">
+                <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-purple-600 text-4xl text-white">
                   {provider.name?.[0]}
                 </AvatarFallback>
               </Avatar>
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold text-white">
+                  {provider.name}
+                </h1>
+                <p className="text-sm text-cyan-400/80">@{provider.id}</p>
+              </div>
+              <Badge
+                variant="secondary"
+                className="w-fit bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30"
+              >
+                <FaBook className="mr-2 h-3 w-3" />
+                Provider
+              </Badge>
+              <div className="flex gap-4 pt-2">
+                {provider.linkedin && (
+                  <a
+                    href={provider.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white/60 transition-colors hover:text-cyan-400"
+                  >
+                    <FaLinkedin size={22} />
+                  </a>
+                )}
+                {provider.twitter && (
+                  <a
+                    href={provider.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white/60 transition-colors hover:text-cyan-400"
+                  >
+                    <FaTwitter size={22} />
+                  </a>
+                )}
+              </div>
+            </div>
 
-              {/* Info */}
-              <div className="flex-1 space-y-4">
-                <div>
-                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                    <h1 className="text-3xl font-bold text-white">
-                      {provider.name}
-                    </h1>
-                    <Badge
-                      variant="secondary"
-                      className="w-fit bg-cyan-400/20 text-cyan-400 hover:bg-cyan-400/30"
-                    >
-                      <FaBook className="mr-1 h-3 w-3" />
-                      Provider
-                    </Badge>
+            {/* Right Column */}
+            <div className="md:col-span-2 space-y-6">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-widest text-cyan-400/80 mb-2">
+                  About
+                </h2>
+                <p className="text-white/90 text-base">{provider.bio}</p>
+              </div>
+              <Separator className="bg-cyan-400/20" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {balance && (
+                  <div className="space-y-2">
+                    <h2 className="text-sm font-semibold uppercase tracking-widest text-cyan-400/80 flex items-center gap-2">
+                      <FaWallet /> Balance
+                    </h2>
+                    <div className="text-3xl font-light flex items-center gap-2">
+                      <span className="font-bold">{parseInt(balance).toLocaleString()}</span>
+                      <Image
+                        src="https://res.cloudinary.com/dmbxx03vp/image/upload/v1762624908/flow_khaqxk.svg"
+                        alt="FLOW Logo"
+                        width={28}
+                        height={28}
+                      />
+                    </div>
                   </div>
-                  <p className="mt-2 flex items-center gap-2 text-sm text-cyan-400/70">
-                    <FaEnvelope className="h-3 w-3" />
-                    {provider.email}
-                  </p>
-                  <p className="mt-2 flex items-center gap-2 text-sm text-cyan-400/70">
-                    <FaUser className="h-3 w-3" />
-                    Username: {provider.id}
-                  </p>
-                  {provider.walletAddress && (
-                    <p className="mt-2 flex items-center gap-2 text-sm text-cyan-400/70">
-                      <FaWallet className="h-3 w-3" />
-                      Wallet: {provider.walletAddress}
-                    </p>
-                  )}
-                </div>
-
-                <p className="text-white/80">{provider.bio}</p>
-
-                {/* Social Links */}
-                <div className="flex gap-3">
-                  {provider.linkedin && (
-                    <a
-                      href={provider.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-white/60 transition-colors hover:text-cyan-400"
-                    >
-                      <FaLinkedin size={20} />
-                    </a>
-                  )}
-                  {provider.twitter && (
-                    <a
-                      href={provider.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-white/60 transition-colors hover:text-cyan-400"
-                    >
-                      <FaTwitter size={20} />
-                    </a>
-                  )}
+                )}
+                <div className="space-y-2">
+                  <h2 className="text-sm font-semibold uppercase tracking-widest text-cyan-400/80 flex items-center gap-2">
+                    <FaEnvelope /> Contact
+                  </h2>
+                  <p className="text-white/90 break-all">{provider.email}</p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Balance Cards */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* LEARN Balance */}
-          <Card className="border-cyan-400/20 bg-black/40 backdrop-blur-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-cyan-400">
-                <FaCoins />
-                PGN Balance
-              </CardTitle>
-              <CardDescription className="text-white/60">
-                Your token balance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold text-white">
-                {provider.learnBalance.toLocaleString()}
-              </div>
-              <p className="mt-1 text-sm text-white/50">Tokens</p>
-            </CardContent>
-          </Card>
-
-          {/* FLOW Balance */}
-          {balance && (
-            <Card className="border-cyan-400/20 bg-black/40 backdrop-blur-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-cyan-400">
-                  <FaWallet />
-                  FLOW Balance
-                </CardTitle>
-                <CardDescription className="text-white/60">
-                  Your wallet balance
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-white">
-                  {parseInt(balance).toLocaleString()}
+              {provider.walletAddress && (
+                <div>
+                  <h2 className="text-sm font-semibold uppercase tracking-widest text-cyan-400/80 mb-2 flex items-center gap-2">
+                    <FaWallet /> Wallet Address
+                  </h2>
+                  <p className="text-white/90 font-mono text-sm break-all">
+                    {provider.walletAddress}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-white/50">FLOW</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Actions Card */}
-        <Card className="border-cyan-400/20 bg-black/40 backdrop-blur-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-3 md:flex-row">
-              <Button
-                onClick={handleRechargeRedirect}
-                className="flex-1 bg-white text-black hover:bg-gray-300"
-              >
-                <FaCoins className="mr-2" />
-                Bridge Tokens
-              </Button>
-              <Button
-                onClick={handleLogout}
-                variant="destructive"
-              >
-                <FaSignOutAlt className="mr-2" />
-                Sign Out
-              </Button>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

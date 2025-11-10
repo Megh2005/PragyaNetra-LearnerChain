@@ -4,34 +4,30 @@ import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button
 import ProviderOnboarding from "@/components/provider-onboarding";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { auth, db } from "@/lib/firebase"; // Import db
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { collection, query, where, getDocs } from "firebase/firestore"; // Import firestore functions
+import { collection, query, where, getDocs } from "firebase/firestore"; 
+import { Bars } from "react-loader-spinner";
 
 const AuthPage: React.FC = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false); // New state to control onboarding dialog
-
+  const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in, check if provider data exists
         const providersRef = collection(db, "providers");
         const q = query(providersRef, where("email", "==", user.email));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          // Provider data found, redirect to dashboard
           router.push("/dashboard");
         } else {
-          // User signed in but no provider data, show onboarding
           setShowOnboarding(true);
           setLoading(false);
         }
       } else {
-        // No user signed in, show auth options (including manual onboarding trigger)
         setLoading(false);
       }
     });
@@ -40,7 +36,19 @@ const AuthPage: React.FC = () => {
   }, [router]);
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center bg-black text-white">Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-black text-white">
+        <Bars
+          height="60"
+          width="60"
+          color="#22D3EE"
+          ariaLabel="bars-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+          visible={true}
+        />
+      </div>
+    );
   }
 
   return (
@@ -58,7 +66,6 @@ const AuthPage: React.FC = () => {
             <InteractiveHoverButton className="rounded-full px-6 py-3 font-bold text-xl tracking-wider bg-black border-cyan-400">
               <Link href="/explore">Learner</Link>
             </InteractiveHoverButton>
-            {/* Pass showOnboarding state to ProviderOnboarding */}
             <ProviderOnboarding initialOpen={showOnboarding} />
           </div>
         </div>
