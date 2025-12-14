@@ -611,12 +611,13 @@ const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
                         </div>
                       </div>
 
-                      <button
+                      <NeoCyberButton
                         onClick={() => setPlayingVideo(videoUrl)}
-                        className="inline-flex items-center justify-center w-full py-3 bg-cyan-950/30 hover:bg-cyan-900/40 text-cyan-400 border border-cyan-500/30 rounded-lg hover:border-cyan-500/60 transition-all uppercase font-mono text-xs tracking-widest gap-2 cursor-pointer"
+                        className="w-full text-xs"
+                        variant="secondary"
                       >
-                        <FaPlay size={10} /> ACCESS NODE
-                      </button>
+                        <FaPlay className="mr-2" size={10} /> ACCESS NODE
+                      </NeoCyberButton>
                     </div>
                   </GlowCard>
                 );
@@ -710,64 +711,83 @@ const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
         {/* CREATOR TAB */}
         {activeTab === 'creator' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
-            {provider ? (
-              <GlowCard className="bg-black/60 backdrop-blur-xl p-8" borderColors={{ first: "#06b6d4", second: "#8b5cf6" }}>
-                <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                  <div className="relative group">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
-                    <Avatar className="h-40 w-40 border-4 border-black relative">
-                      <AvatarImage src={provider.avatar} alt={provider.name} className="object-cover" />
-                      <AvatarFallback className="bg-zinc-900 text-6xl text-white font-mono">
-                        {provider.name?.[0]}
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto py-8">
+            <GlowCard className="bg-black/80 backdrop-blur-2xl overflow-hidden relative border-cyan-500/30" borderColors={{ first: "#06b6d4", second: "#8b5cf6" }}>
+              {/* Decorative Background Elements */}
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-500/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+
+              <div className="flex flex-col md:flex-row gap-10 relative z-10 p-2 md:p-6">
+                {/* Left Column: Avatar & Identity */}
+                <div className="flex flex-col items-center space-y-6 shrink-0 md:w-1/3">
+                  <div className="relative group perspective-1000">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-1000 animate-pulse-slow"></div>
+                    <Avatar className="w-40 h-40 md:w-48 md:h-48 border-4 border-black relative shadow-2xl">
+                      <AvatarImage src={provider?.avatar} alt={provider?.name} className="object-cover" />
+                      <AvatarFallback className="bg-zinc-900 text-6xl text-white font-mono flex items-center justify-center">
+                        {provider?.name?.[0]}
                       </AvatarFallback>
                     </Avatar>
+
+                    {/* Status Indicator */}
+                    <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 w-6 h-6 bg-green-500 border-4 border-black rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                   </div>
 
-                  <div className="flex-1 text-center md:text-left space-y-4">
-                    <div>
-                      <h2 className="text-3xl font-bold text-white mb-2">{provider.name}</h2>
-                      <p className="text-cyan-400 font-mono text-sm tracking-widest uppercase mb-4">Certified Knowledge Provider</p>
-                      <Badge variant="outline" className="border-cyan-500/30 text-cyan-200 bg-cyan-950/30 font-mono">
-                        ID: {provider.id}
-                      </Badge>
-                    </div>
+                  <div className="text-center w-full space-y-3">
+                    <Badge variant="outline" className="border-cyan-500/50 text-cyan-300 bg-cyan-950/50 font-mono text-xs py-1 px-3 backdrop-blur-md">
+                      SYS_ID: {provider?.id.slice(0, 8)}...
+                    </Badge>
 
-                    <p className="text-slate-300 leading-relaxed max-w-xl">
-                      {provider.bio || "This operator chose to remain enigmatic, letting their code speak for itself."}
-                    </p>
-
-                    <div className="flex flex-wrap justify-center md:justify-start gap-4 pt-4">
-                      {provider.website && (
-                        <a href={provider.website} target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-cyan-500/20 text-white hover:text-cyan-400 transition-all border border-white/10 hover:border-cyan-500/50 hover:scale-110">
-                          <FaGlobe size={18} />
+                    <div className="flex justify-center gap-3 pt-2">
+                      {provider?.website && (
+                        <a href={provider.website} target="_blank" rel="noopener noreferrer" className="p-3 rounded-full bg-black/40 border border-white/10 text-slate-400 hover:text-cyan-400 hover:border-cyan-500 hover:scale-110 hover:bg-cyan-950/30 transition-all duration-300 group">
+                          <FaGlobe size={18} className="group-hover:rotate-12 transition-transform" />
                         </a>
                       )}
-                      {provider.linkedin && (
-                        <a href={provider.linkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-cyan-500/20 text-white hover:text-cyan-400 transition-all border border-white/10 hover:border-cyan-500/50 hover:scale-110">
-                          <FaLinkedin size={18} />
+                      {provider?.linkedin && (
+                        <a href={provider.linkedin} target="_blank" rel="noopener noreferrer" className="p-3 rounded-full bg-black/40 border border-white/10 text-slate-400 hover:text-cyan-400 hover:border-cyan-500 hover:scale-110 hover:bg-cyan-950/30 transition-all duration-300 group">
+                          <FaLinkedin size={18} className="group-hover:rotate-12 transition-transform" />
                         </a>
                       )}
-                      {provider.twitter && (
-                        <a href={provider.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-cyan-500/20 text-white hover:text-cyan-400 transition-all border border-white/10 hover:border-cyan-500/50 hover:scale-110">
-                          <FaTwitter size={18} />
+                      {provider?.twitter && (
+                        <a href={provider.twitter} target="_blank" rel="noopener noreferrer" className="p-3 rounded-full bg-black/40 border border-white/10 text-slate-400 hover:text-cyan-400 hover:border-cyan-500 hover:scale-110 hover:bg-cyan-950/30 transition-all duration-300 group">
+                          <FaTwitter size={18} className="group-hover:rotate-12 transition-transform" />
                         </a>
                       )}
-                    </div>
-                    <div className="pt-6 border-t border-white/5 w-full">
-                      <NeoCyberButton className="w-full md:w-auto text-xs px-8">
-                        <span className="mr-2">+</span> Follow Provider Node
-                      </NeoCyberButton>
                     </div>
                   </div>
                 </div>
-              </GlowCard>
-            ) : (
-              <div className="text-center py-20">
-                <FaSpinner className="text-4xl text-cyan-500 animate-spin mx-auto mb-4" />
-                <p className="text-cyan-800 font-mono">DECRYPTING IDENTITY...</p>
+
+                {/* Vertical Divider (Desktop) */}
+                <div className="hidden md:block w-px bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent"></div>
+
+                {/* Right Column: Bio & Info */}
+                <div className="flex-1 flex flex-col items-center md:items-start space-y-6 text-center md:text-left">
+                  <div className="space-y-2 w-full">
+                    <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-slate-400 uppercase tracking-tighter drop-shadow-sm">
+                      {provider?.name}
+                    </h2>
+                    <div className="flex items-center justify-center md:justify-start gap-3">
+                      <div className="h-1 w-12 bg-cyan-500 rounded-full"></div>
+                      <p className="text-cyan-500 font-mono text-sm tracking-widest uppercase font-bold">
+                        Certified Knowledge Architect
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/30 border border-white/5 rounded-2xl p-6 md:p-8 w-full relative group hover:border-cyan-500/20 transition-colors">
+                    <FaUser className="absolute top-6 right-6 text-6xl text-white/5 group-hover:text-cyan-500/10 transition-colors" />
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"></span>
+                      Operator Biography
+                    </h3>
+                    <p className="text-slate-300 leading-8 text-lg font-light">
+                      {provider?.bio || "Data unavailable. This operator prefers to remain an enigma in the digital void."}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
+            </GlowCard>
           </div>
         )}
       </div>
