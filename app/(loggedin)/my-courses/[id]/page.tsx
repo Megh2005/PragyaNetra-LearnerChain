@@ -15,7 +15,9 @@ import {
   FaLinkedin,
   FaTwitter,
   FaGlobe,
-  FaGraduationCap
+  FaGraduationCap,
+  FaImage,
+  FaCheckCircle
 } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -87,6 +89,18 @@ const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [editingVideoIndex, setEditingVideoIndex] = useState<number | null>(null);
   const [newVideoUrl, setNewVideoUrl] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Edit Course State
+  const [isEditingCourse, setIsEditingCourse] = useState(false);
+  const [editCourseForm, setEditCourseForm] = useState({
+    title: "",
+    description: "",
+    bannerUrl: "",
+    price: ""
+  });
+
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
   // Wallet State
   const [isConnected, setIsConnected] = useState(false);
@@ -260,6 +274,110 @@ const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
     }
   };
 
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("File size must be less than 3MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setBannerFile(file);
+      setBannerPreview(event.target?.result as string);
+      toast.success("Image selected");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleEditCourseClick = () => {
+    if (!course) return;
+    setEditCourseForm({
+      title: course.title,
+      description: course.description,
+      bannerUrl: course.bannerUrl,
+      price: course.price || ""
+    });
+    setIsEditingCourse(true);
+    setBannerFile(null);
+    setBannerPreview(null);
+
+    if (!isConnected) {
+      connectWallet(setIsConnected, setUserAddress, setSigner);
+    }
+  };
+
+
+  const handleUpdateCourse = async () => {
+    if (!course || !signer) {
+      toast.error("Initialization Error", { description: "Please ensure wallet is connected." });
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+
+      // 1. Process Payment
+      if (parseFloat(EDIT_COST_FLOW) > 0) {
+        const costWei = parseEther(EDIT_COST_FLOW);
+        const tx = await signer.sendTransaction({
+          to: TREASURY_ADDRESS,
+          value: costWei,
+        });
+
+        toast.info("Transaction Sent/Processing...", { description: "Waiting for confirmation." });
+        await tx.wait();
+        toast.success("Payment Successful!", { description: `${EDIT_COST_FLOW} FLOW paid.` });
+      }
+
+      // 2. Upload Banner (if changed)
+      let finalBannerUrl = editCourseForm.bannerUrl;
+
+      if (bannerFile) {
+        toast.info("Uploading new banner...", { description: "Please wait." });
+        const formData = new FormData();
+        formData.append("file", bannerFile);
+        formData.append("folder", "courses");
+
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Failed to upload banner.");
+        }
+
+        const uploadResult = await uploadResponse.json();
+        finalBannerUrl = uploadResult.secure_url;
+      }
+
+      // 3. Update Firestore
+      const courseRef = doc(db, "courses", course.id);
+      const updates = {
+        title: editCourseForm.title,
+        description: editCourseForm.description,
+        bannerUrl: finalBannerUrl,
+        price: editCourseForm.price
+      };
+
+      await updateDoc(courseRef, updates);
+
+      // 4. Update Local State
+      setCourse({ ...course, ...updates, bannerUrl: finalBannerUrl });
+      toast.success("Course Updated Successfully");
+      setIsEditingCourse(false);
+
+    } catch (error: any) {
+      console.error("Course update failed:", error);
+      toast.error("Update Failed", { description: error.message || "Transaction or update failed." });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
   const getYouTubeVideoId = (url: string) => {
     let videoId;
     if (url.includes("youtu.be")) {
@@ -428,6 +546,18 @@ const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
                     <FaPlay className="text-xs text-cyan-400" />
                     <span className="text-cyan-400 font-bold font-mono text-lg">{course.price} FLOW</span>
                   </div>
+                </div>
+              )}
+
+              {/* Edit Course Button for Creator */}
+              {currentUser && course && course.providerId === currentUser.email && (
+                <div className="flex-shrink-0 self-center">
+                  <button
+                    onClick={handleEditCourseClick}
+                    className="px-4 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/30 rounded-xl hover:bg-amber-500/20 transition-colors uppercase font-mono tracking-widest text-xs flex items-center gap-2"
+                  >
+                    <FaBook /> Edit Details
+                  </button>
                 </div>
               )}
             </div>
@@ -790,6 +920,123 @@ const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
             </GlowCard>
           </div>
         )}
+        {/* EDIT COURSE MODAL */}
+        <Dialog open={isEditingCourse} onOpenChange={(open) => !isProcessingPayment && setIsEditingCourse(open)}>
+          <DialogContent className="bg-black/90 border border-cyan-500/30 text-white backdrop-blur-xl max-w-lg overflow-y-auto max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="text-cyan-400 font-mono uppercase tracking-widest">
+                Edit Course Protocol
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400 font-mono">Title</label>
+                <Input
+                  value={editCourseForm.title}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, title: e.target.value })}
+                  className="bg-black/50 border-cyan-500/30 text-white font-mono text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400 font-mono">Description</label>
+                <textarea
+                  value={editCourseForm.description}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, description: e.target.value })}
+                  className="w-full h-32 bg-black/50 border border-cyan-500/30 text-white font-mono text-sm p-3 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400 font-mono">Banner Image</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerChange}
+                      className="bg-black/50 border-cyan-500/30 text-white font-mono text-xs file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:bg-cyan-900/40 file:text-cyan-400 file:font-mono file:text-xs hover:file:bg-cyan-800/40 cursor-pointer pt-2"
+                    />
+                    <p className="text-[10px] text-slate-500 font-mono">
+                      Current: {editCourseForm.bannerUrl ? 'Set' : 'None'}
+                    </p>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="relative aspect-video rounded-lg overflow-hidden border border-cyan-500/30 bg-black/50 flex items-center justify-center group">
+                    {(bannerPreview || editCourseForm.bannerUrl) ? (
+                      <>
+                        <Image
+                          src={bannerPreview || editCourseForm.bannerUrl}
+                          alt="Preview"
+                          layout="fill"
+                          objectFit="cover"
+                        />
+                        {bannerPreview && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-black rounded-full p-1 shadow-lg border border-green-400 z-10">
+                            <FaCheckCircle className="text-xs" />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center p-2">
+                        <FaImage className="text-2xl text-cyan-900/50 mb-1 mx-auto" />
+                        <p className="text-[9px] text-cyan-900">NO IMAGE</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-slate-400 font-mono">Price (FLOW)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editCourseForm.price}
+                  onChange={(e) => setEditCourseForm({ ...editCourseForm, price: e.target.value })}
+                  className="bg-black/50 border-cyan-500/30 text-white font-mono text-sm"
+                />
+              </div>
+
+
+              <div className="bg-amber-950/20 border border-amber-500/20 p-4 rounded-lg">
+                <div className="flex items-center gap-3 text-amber-400">
+                  <FaClock />
+                  <span className="font-bold font-mono">COST: {EDIT_COST_FLOW} FLOW</span>
+                </div>
+                <p className="text-xs text-amber-400/70 mt-1 pl-7">
+                  Updating core system parameters requires consensus validation.
+                </p>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditingCourse(false)}
+                disabled={isProcessingPayment}
+                className="border-white/10 hover:bg-white/10 text-slate-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpdateCourse}
+                disabled={isProcessingPayment}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold font-mono uppercase tracking-widest"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Confirm Update
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
