@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface NeoCyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
-    variant?: "primary" | "secondary" | "danger";
+    variant?: "primary" | "secondary" | "danger" | "ghost";
     className?: string;
 }
 
@@ -28,12 +28,14 @@ export const NeoCyberButton = ({
         primary: "border-cyan-500 text-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]",
         secondary: "border-purple-500 text-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]",
         danger: "border-red-500 text-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]",
+        ghost: "border-transparent text-slate-400 shadow-none hover:text-cyan-400 hover:shadow-[0_0_10px_rgba(6,182,212,0.2)]",
     };
 
     const bgColors = {
         primary: "bg-cyan-500/10 hover:bg-cyan-500/20",
         secondary: "bg-purple-500/10 hover:bg-purple-500/20",
         danger: "bg-red-500/10 hover:bg-red-500/20",
+        ghost: "bg-transparent hover:bg-white/5",
     };
 
     const scramble = () => {
@@ -121,7 +123,7 @@ export const NeoCyberButton = ({
             <div
                 className={cn(
                     "absolute inset-0 w-full h-full origin-left transform scale-x-0 transition-transform duration-300 ease-out z-0",
-                    variant === 'primary' ? 'bg-cyan-500/10' : variant === 'secondary' ? 'bg-purple-500/10' : 'bg-red-500/10'
+                    variant === 'primary' ? 'bg-cyan-500/10' : variant === 'secondary' ? 'bg-purple-500/10' : variant === 'ghost' ? 'bg-white/5' : 'bg-red-500/10'
                 )}
                 style={{ transform: isHovered ? 'scaleX(1)' : 'scaleX(0)' }}
             />

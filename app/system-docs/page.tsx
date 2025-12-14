@@ -72,51 +72,51 @@ export default function SystemDocsPage() {
 
                         <motion.h1
                             variants={itemVariants}
-                            className="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-slate-400"
+                            className="text-5xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 animate-gradient-x"
                         >
                             PRAGYA NETRA
-                            <span className="block text-2xl md:text-3xl font-light tracking-widest mt-2 text-cyan-500/50 font-mono">
+                            <span className="block text-2xl md:text-3xl font-light tracking-widest mt-2 text-white/50 font-mono">
                 // THE THIRD EYE OF KNOWLEDGE
                             </span>
                         </motion.h1>
 
                         <motion.p
                             variants={itemVariants}
-                            className="max-w-3xl mx-auto text-lg md:text-xl text-slate-400 leading-relaxed font-light"
+                            className="max-w-3xl mx-auto text-lg md:text-xl text-slate-300 leading-relaxed font-light"
                         >
                             In an era of localized data silos, we establish a decentralized educational protocol.
-                            Pragya Netra is not merely a platform; it is a <span className="text-cyan-400 font-medium">sovereign network</span> where knowledge flows immutable, uncensored, and peer-to-peer.
+                            Pragya Netra is not merely a platform; it is a <span className="text-cyan-400 font-bold">sovereign network</span> where knowledge flows immutable, uncensored, and peer-to-peer.
                         </motion.p>
                     </section>
 
-                    <Separator className="bg-gradient-to-r from-transparent via-cyan-900 to-transparent" />
+                    <Separator className="bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
                     {/* 2. Core Architecture */}
                     <section>
                         <motion.div variants={itemVariants} className="mb-8 flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-cyan-950/30 border border-cyan-500/20 text-cyan-400">
+                            <div className="p-3 rounded-lg bg-cyan-950/30 border border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                                 <FaNetworkWired size={24} />
                             </div>
-                            <h2 className="text-3xl font-bold tracking-tight uppercase">Core Architecture</h2>
+                            <h2 className="text-3xl font-bold tracking-tight uppercase text-white">Core Architecture</h2>
                         </motion.div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <motion.div variants={itemVariants}>
-                                <GlowCard className="h-full p-8 bg-black/40 backdrop-blur-md border-cyan-500/20">
+                                <GlowCard className="h-full p-8 bg-black/60 backdrop-blur-md border-cyan-500/30" borderColors={{ first: "#06b6d4", second: "#3b82f6" }}>
                                     <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                        <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"></span>
                                         The Bridge
                                     </h3>
                                     <p className="text-slate-400 leading-relaxed text-sm">
-                                        Our system operates on a hybrid architecture. The <span className="text-purple-400">Identity Layer</span> leverages standard authentication for seamless onboarding, while the <span className="text-cyan-400">Value Layer</span> is purely on-chain. This "Bridge" ensures that while user experience remains fluid, the ownership of assets (Courses, Flow Tokens) remains cryptographically secure.
+                                        Our system operates on a hybrid architecture. The <span className="text-cyan-300">Identity Layer</span> leverages standard authentication for seamless onboarding, while the <span className="text-purple-400">Value Layer</span> is purely on-chain. This "Bridge" ensures that while user experience remains fluid, the ownership of assets remains cryptographically secure.
                                     </p>
                                 </GlowCard>
                             </motion.div>
 
                             <motion.div variants={itemVariants}>
-                                <GlowCard className="h-full p-8 bg-black/40 backdrop-blur-md border-cyan-500/20" borderColors={{ first: "#a855f7", second: "#06b6d4" }}>
+                                <GlowCard className="h-full p-8 bg-black/60 backdrop-blur-md border-cyan-500/30" borderColors={{ first: "#a855f7", second: "#ec4899" }}>
                                     <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                                        <span className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_#a855f7]"></span>
                                         Immutable Ledger
                                     </h3>
                                     <p className="text-slate-400 leading-relaxed text-sm">
@@ -130,22 +130,22 @@ export default function SystemDocsPage() {
                     {/* 3. The Flow Protocol */}
                     <section>
                         <motion.div variants={itemVariants} className="mb-8 flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-green-950/30 border border-green-500/20 text-green-400">
+                            <div className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                                 <FaCube size={24} />
                             </div>
-                            <h2 className="text-3xl font-bold tracking-tight uppercase">The Flow Protocol</h2>
+                            <h2 className="text-3xl font-bold tracking-tight uppercase text-white">The Flow Protocol</h2>
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
-                            <GlowCard className="p-1 bg-gradient-to-br from-green-500/10 to-emerald-900/10 border-green-500/20" borderColors={{ first: "#10b981", second: "#059669" }}>
-                                <div className="bg-black/80 backdrop-blur-xl p-8 rounded-xl h-full">
+                            <GlowCard className="p-1 bg-black/60 backdrop-blur-md border-emerald-500/30" borderColors={{ first: "#10b981", second: "#06b6d4" }}>
+                                <div className="p-8 rounded-xl h-full">
                                     <p className="text-lg text-slate-300 mb-6 font-light">
-                                        We chose <strong className="text-green-400">Flow Blockchain</strong> for its high throughput and developer-centric Cadence architecture. It allows us to execute micro-transactions for course updates without burdening creators with prohibitive gas fees.
+                                        We chose <strong className="text-emerald-400">Flow Blockchain</strong> for its high throughput and developer-centric Cadence architecture. It allows us to execute micro-transactions for course updates without burdening creators with prohibitive gas fees.
                                     </p>
 
                                     <div className="space-y-4">
                                         <Accordion type="single" collapsible className="w-full">
-                                            <AccordionItem value="item-1" className="border-white/10">
+                                            <AccordionItem value="item-1" className="border-emerald-500/20">
                                                 <AccordionTrigger className="text-emerald-300 hover:text-emerald-200 uppercase tracking-widest text-sm font-bold">
                                                     Why Cadence?
                                                 </AccordionTrigger>
@@ -154,7 +154,7 @@ export default function SystemDocsPage() {
                                                 </AccordionContent>
                                             </AccordionItem>
 
-                                            <AccordionItem value="item-2" className="border-white/10">
+                                            <AccordionItem value="item-2" className="border-emerald-500/20">
                                                 <AccordionTrigger className="text-emerald-300 hover:text-emerald-200 uppercase tracking-widest text-sm font-bold">
                                                     Transaction Throughput
                                                 </AccordionTrigger>
@@ -172,18 +172,18 @@ export default function SystemDocsPage() {
                     {/* 4. Utility & Economics */}
                     <section>
                         <motion.div variants={itemVariants} className="mb-8 flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-yellow-950/30 border border-yellow-500/20 text-yellow-400">
+                            <div className="p-3 rounded-lg bg-pink-950/30 border border-pink-500/50 text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
                                 <FaCoins size={24} />
                             </div>
-                            <h2 className="text-3xl font-bold tracking-tight uppercase">Utility & Economics</h2>
+                            <h2 className="text-3xl font-bold tracking-tight uppercase text-white">Utility & Economics</h2>
                         </motion.div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Creator Economy */}
                             <motion.div variants={itemVariants} className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-opacity duration-500"></div>
-                                <div className="relative border border-orange-500/20 bg-black/60 backdrop-blur-md p-8 rounded-2xl h-full hover:border-orange-500/40 transition-colors">
-                                    <h3 className="text-xl font-bold text-orange-400 mb-2 uppercase tracking-wider flex items-center gap-3">
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-opacity duration-500"></div>
+                                <div className="relative border border-purple-500/30 bg-black/60 backdrop-blur-md p-8 rounded-2xl h-full hover:border-purple-500/50 transition-colors">
+                                    <h3 className="text-xl font-bold text-purple-400 mb-2 uppercase tracking-wider flex items-center gap-3">
                                         <FaUserSecret /> Creator Node
                                     </h3>
                                     <div className="space-y-4 mt-6">
@@ -204,21 +204,21 @@ export default function SystemDocsPage() {
 
                             {/* Learner Economy */}
                             <motion.div variants={itemVariants} className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-opacity duration-500"></div>
-                                <div className="relative border border-blue-500/20 bg-black/60 backdrop-blur-md p-8 rounded-2xl h-full hover:border-blue-500/40 transition-colors">
-                                    <h3 className="text-xl font-bold text-blue-400 mb-2 uppercase tracking-wider flex items-center gap-3">
+                                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-opacity duration-500"></div>
+                                <div className="relative border border-cyan-500/30 bg-black/60 backdrop-blur-md p-8 rounded-2xl h-full hover:border-cyan-500/50 transition-colors">
+                                    <h3 className="text-xl font-bold text-cyan-400 mb-2 uppercase tracking-wider flex items-center gap-3">
                                         <FaGraduationCap /> Learner Node
                                     </h3>
                                     <div className="space-y-4 mt-6">
                                         <p className="text-slate-300 text-sm leading-relaxed">
                                             Learners pay directly to the smart contract. The contract splits the payment instantly:
                                         </p>
-                                        <ul className="space-y-2 text-sm text-slate-400 list-disc pl-4 marker:text-blue-500">
+                                        <ul className="space-y-2 text-sm text-slate-400 list-disc pl-4 marker:text-cyan-500">
                                             <li>95% Direct to Creator Wallet</li>
                                             <li>5% Protocol Maintenance Fee</li>
                                         </ul>
-                                        <div className="mt-4 bg-blue-950/20 p-4 rounded-lg border border-blue-500/20">
-                                            <p className="text-blue-200 text-xs font-mono text-center">
+                                        <div className="mt-4 bg-cyan-950/20 p-4 rounded-lg border border-cyan-500/20">
+                                            <p className="text-cyan-200 text-xs font-mono text-center">
                                                 NO INTERMEDIARIES. INSTANT SETTLEMENT.
                                             </p>
                                         </div>
@@ -231,18 +231,18 @@ export default function SystemDocsPage() {
                     {/* 5. User Manual (Accordion Style) */}
                     <section>
                         <motion.div variants={itemVariants} className="mb-8 flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-pink-950/30 border border-pink-500/20 text-pink-400">
+                            <div className="p-3 rounded-lg bg-purple-950/30 border border-purple-500/50 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                                 <FaBook size={24} />
                             </div>
-                            <h2 className="text-3xl font-bold tracking-tight uppercase">Manual Interface</h2>
+                            <h2 className="text-3xl font-bold tracking-tight uppercase text-white">Manual Interface</h2>
                         </motion.div>
 
                         <motion.div variants={itemVariants}>
                             <Accordion type="single" collapsible className="w-full space-y-4">
-                                <AccordionItem value="start" className="border border-white/10 bg-white/5 rounded-xl px-4 overflow-hidden">
+                                <AccordionItem value="start" className="border border-purple-500/20 bg-purple-900/10 rounded-xl px-4 overflow-hidden shadow-[0_0_10px_rgba(168,85,247,0.1)]">
                                     <AccordionTrigger className="text-lg font-medium text-white hover:text-cyan-400 hover:no-underline py-4">
                                         <span className="flex items-center gap-4">
-                                            <span className="text-xs font-mono text-slate-500">01</span>
+                                            <span className="text-xs font-mono text-purple-400">01</span>
                                             PROTOCOL INITIATION
                                         </span>
                                     </AccordionTrigger>
@@ -252,10 +252,10 @@ export default function SystemDocsPage() {
                                     </AccordionContent>
                                 </AccordionItem>
 
-                                <AccordionItem value="create" className="border border-white/10 bg-white/5 rounded-xl px-4 overflow-hidden">
+                                <AccordionItem value="create" className="border border-purple-500/20 bg-purple-900/10 rounded-xl px-4 overflow-hidden shadow-[0_0_10px_rgba(168,85,247,0.1)]">
                                     <AccordionTrigger className="text-lg font-medium text-white hover:text-cyan-400 hover:no-underline py-4">
                                         <span className="flex items-center gap-4">
-                                            <span className="text-xs font-mono text-slate-500">02</span>
+                                            <span className="text-xs font-mono text-purple-400">02</span>
                                             DEPLOYING KNOWLEDGE
                                         </span>
                                     </AccordionTrigger>
@@ -263,14 +263,14 @@ export default function SystemDocsPage() {
                                         Navigate to your Dashboard. Engage the "INITIATE NEW COURSE" protocol.
                                         You must provide a Title, Description, and Price (in FLOW).
                                         <br /><br />
-                                        <em className="text-yellow-500/80">Caution: This action writes to the blockchain. Ensure your wallet has sufficient gas fees.</em>
+                                        <em className="text-pink-400/80">Caution: This action writes to the blockchain. Ensure your wallet has sufficient gas fees.</em>
                                     </AccordionContent>
                                 </AccordionItem>
 
-                                <AccordionItem value="edit" className="border border-white/10 bg-white/5 rounded-xl px-4 overflow-hidden">
+                                <AccordionItem value="edit" className="border border-purple-500/20 bg-purple-900/10 rounded-xl px-4 overflow-hidden shadow-[0_0_10px_rgba(168,85,247,0.1)]">
                                     <AccordionTrigger className="text-lg font-medium text-white hover:text-cyan-400 hover:no-underline py-4">
                                         <span className="flex items-center gap-4">
-                                            <span className="text-xs font-mono text-slate-500">03</span>
+                                            <span className="text-xs font-mono text-purple-400">03</span>
                                             REFINING DATA
                                         </span>
                                     </AccordionTrigger>
@@ -285,7 +285,7 @@ export default function SystemDocsPage() {
                     </section>
 
                     {/* Footer CTA */}
-                    <motion.div variants={itemVariants} className="pt-12 pb-20 text-center">
+                    <motion.div variants={itemVariants} className="pt-12 pb-20 flex flex-col items-center text-center">
                         <h3 className="text-2xl font-bold text-white mb-6 uppercase tracking-wider">Ready to Jack In?</h3>
                         <Link href="/auth">
                             <NeoCyberButton className="text-lg px-12 py-6">

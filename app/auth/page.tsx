@@ -12,6 +12,7 @@ import { Bars } from "react-loader-spinner";
 import { motion } from "framer-motion";
 import { GlowCard } from "@/components/ui/glow-card";
 import { BookOpen, GraduationCap } from "lucide-react";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 const AuthPage: React.FC = () => {
   const router = useRouter();
@@ -58,11 +59,8 @@ const AuthPage: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden py-20 px-4 bg-[#050505]">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 opacity-50"></div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] -z-10 animate-pulse-slow"></div>
-      <div className="absolute bottom-0 -left-64 w-[600px] h-[600px] bg-cyan-900/10 rounded-full blur-[100px] -z-10"></div>
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden py-20 px-4 text-white">
+      <AnimatedBackground />
 
       <div className="max-w-6xl w-full z-10 flex flex-col items-center">
         <motion.h1
@@ -75,7 +73,7 @@ const AuthPage: React.FC = () => {
 
         <div className="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
           {/* Learner Card */}
-          <GlowCard className="p-10 flex flex-col items-center text-center bg-black/40 border-white/5 hover:border-cyan-500/30 transition-all duration-500 group">
+          <GlowCard className="p-10 flex flex-col items-center text-center bg-black/60 backdrop-blur-md border border-cyan-500/30 hover:border-cyan-500/60 transition-all duration-500 group">
             <div className="w-24 h-24 mb-8 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
               <GraduationCap className="w-10 h-10 text-cyan-400" />
             </div>
@@ -93,7 +91,7 @@ const AuthPage: React.FC = () => {
           </GlowCard>
 
           {/* Provider Card */}
-          <GlowCard borderColors={{ first: "#a855f7", second: "#ec4899" }} className="p-10 flex flex-col items-center text-center bg-black/40 border-white/5 hover:border-purple-500/30 transition-all duration-500 group relative">
+          <GlowCard borderColors={{ first: "#a855f7", second: "#ec4899" }} className="p-10 flex flex-col items-center text-center bg-black/60 backdrop-blur-md border border-purple-500/30 hover:border-purple-500/60 transition-all duration-500 group relative">
             {/* Cyberpunk Accents */}
             <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500/50 rounded-sm animate-pulse"></div>
             <div className="absolute bottom-2 left-2 w-2 h-2 bg-pink-500/50 rounded-sm animate-pulse delay-75"></div>
