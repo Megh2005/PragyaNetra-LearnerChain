@@ -171,6 +171,9 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
         const tx = await contract.stake({
             value: parseEther(fee.toString()),
         });
+
+        const transactionId = tx.hash;
+
         await tx.wait();
         toast.success("Payment successful!", { id: toastId });
 
@@ -178,6 +181,8 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
             doc(db, "providers", username),
             {
                 walletAddress: userAddress,
+                stakeAmount: fee,
+                stakeTransactionId: transactionId,
             },
             { merge: true }
         );

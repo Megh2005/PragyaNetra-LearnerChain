@@ -4,7 +4,7 @@ import React from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter, usePathname } from "next/navigation";
-import { FaSignOutAlt, FaTachometerAlt, FaUser } from "react-icons/fa";
+import { FaSignOutAlt, FaTachometerAlt, FaUser, FaPlusCircle, FaBook } from "react-icons/fa";
 import Link from "next/link";
 import {
   Tooltip,
@@ -26,6 +26,8 @@ const Navbar = () => {
 
   const navItems = [
     { href: "/dashboard", icon: <FaTachometerAlt size={24} />, label: "Dashboard" },
+    { href: "/my-courses", icon: <FaBook size={24} />, label: "My Courses" },
+    { href: "/add-course", icon: <FaPlusCircle size={24} />, label: "Add Course" },
     { href: "/profile", icon: <FaUser size={24} />, label: "Profile" },
   ];
 

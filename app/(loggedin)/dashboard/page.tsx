@@ -13,10 +13,12 @@ import {
   FaTwitter,
   FaWallet,
   FaEnvelope,
+  FaPlusCircle,
 } from "react-icons/fa";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getWalletBalance } from "@/lib/balance";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -55,14 +57,11 @@ const DashboardPage = () => {
 
             setProvider(providerData);
             if (providerData.walletAddress) {
-              const cachedBalance = sessionStorage.getItem("walletBalance");
-              if (cachedBalance) {
-                setBalance(cachedBalance);
-              } else {
-                const newBalance = await getWalletBalance(providerData.walletAddress);
-                setBalance(newBalance);
-                sessionStorage.setItem("walletBalance", newBalance);
-              }
+              // Always fetch balance, remove sessionStorage
+              const newBalance = await getWalletBalance(
+                providerData.walletAddress
+              );
+              setBalance(newBalance);
             }
           } else {
             console.warn("Provider data not found for authenticated user.");
@@ -70,7 +69,7 @@ const DashboardPage = () => {
         }
       };
 
-      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds minimum delay
+      const minDelayPromise = new Promise((resolve) => setTimeout(resolve, 5000));
 
       await Promise.all([dataFetchLogic(), minDelayPromise]);
       setLoading(false);
@@ -78,6 +77,15 @@ const DashboardPage = () => {
 
     return () => unsubscribe();
   }, []);
+
+  // This useEffect also needs to be updated to always fetch balance
+  useEffect(() => {
+    if (provider?.walletAddress) {
+      getWalletBalance(provider.walletAddress).then((newBalance) => {
+        setBalance(newBalance);
+      });
+    }
+  }, [provider]);
 
   if (loading) {
     return (
@@ -171,7 +179,9 @@ const DashboardPage = () => {
                       <FaWallet /> Balance
                     </h2>
                     <div className="text-3xl font-light flex items-center gap-2">
-                      <span className="font-bold">{parseInt(balance).toLocaleString()}</span>
+                      <span className="font-bold">
+                        {parseInt(balance).toLocaleString()}
+                      </span>
                       <Image
                         src="https://res.cloudinary.com/dmbxx03vp/image/upload/v1762624908/flow_khaqxk.svg"
                         alt="FLOW Logo"
@@ -198,6 +208,16 @@ const DashboardPage = () => {
                   </p>
                 </div>
               )}
+              <Separator className="bg-cyan-400/20" />
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-widest text-cyan-400/80 mb-2">
+                  Actions
+                </h2>
+                <Button onClick={() => router.push('/add-course')} className="bg-cyan-400/20 hover:bg-cyan-400/30 text-cyan-300">
+                  <FaPlusCircle className="mr-2" />
+                  Add New Course
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
