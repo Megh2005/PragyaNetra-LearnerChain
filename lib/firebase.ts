@@ -3,12 +3,12 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCjwh-4DcZciPFffHqW-2eGK0u0h4Zk-aA",
-  authDomain: "educ-a-thon-tjp.firebaseapp.com",
-  projectId: "educ-a-thon-tjp",
-  storageBucket: "educ-a-thon-tjp.firebasestorage.app",
-  messagingSenderId: "567433192123",
-  appId: "1:567433192123:web:6ac832bb14b6ecda66bf9e"
+  apiKey: "AIzaSyCKbZgh6rP1BerWXczW5de1IBNalKa4CyI",
+  authDomain: "pragyanetra.firebaseapp.com",
+  projectId: "pragyanetra",
+  storageBucket: "pragyanetra.firebasestorage.app",
+  messagingSenderId: "77189208122",
+  appId: "1:77189208122:web:ab5344fd73a92b9096fd03"
 };
 
 const app = initializeApp(firebaseConfig);

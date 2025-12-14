@@ -2,7 +2,7 @@
 import React, { useContext } from "react";
 import { WalletContext } from "@/context/Wallet";
 import { connectWallet } from "@/utils/connectWallet";
-import { InteractiveHoverButton } from "./ui/interactive-hover-button";
+import { NeoCyberButton } from "./ui/neo-cyber-button";
 
 declare global {
   interface Window {
@@ -21,17 +21,18 @@ const WalletButton = () => {
 
   return (
     <div className="flex justify-center">
-      <InteractiveHoverButton
+      <NeoCyberButton
         disabled={isConnected}
         onClick={async () => {
           await connectWallet(setIsConnected, setUserAddress, setSigner);
         }}
-        className="w-full"
+        className="w-full text-xs" // Adjusted size for potential long text
+        variant={isConnected ? "secondary" : "primary"}
       >
         {userAddress
-          ? `${userAddress.slice(0, 8)}...${userAddress.slice(-8)}`
-          : "Connect Wallet"}
-      </InteractiveHoverButton>
+          ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`
+          : "CONNECT WALLET"}
+      </NeoCyberButton>
     </div>
   );
 };

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, ChangeEvent, useContext } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { NeoCyberButton } from "@/components/ui/neo-cyber-button";
+import { GlowCard } from "@/components/ui/glow-card";
 import {
   FaPlusCircle,
   FaYoutube,
@@ -14,6 +14,8 @@ import {
   FaBook,
   FaInfoCircle,
   FaMoneyBillWave,
+  FaEye,
+  FaClock
 } from "react-icons/fa";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -24,6 +26,9 @@ import { useRouter } from "next/navigation";
 import WalletButton from "@/components/WalletButton";
 import { ethers } from "ethers";
 import { ABI } from "@/lib/abi";
+import { getYouTubeVideoId, fetchVideoDetails, VideoDetails } from "@/utils/youtube";
+import { Bars } from "react-loader-spinner";
+import { Textarea } from "@/components/ui/textarea";
 
 const AddCoursePage = () => {
   const [title, setTitle] = useState("");
@@ -33,6 +38,7 @@ const AddCoursePage = () => {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [videoCount, setVideoCount] = useState<number>(0);
   const [videoLinks, setVideoLinks] = useState<string[]>([]);
+  const [videoDetails, setVideoDetails] = useState<{ [key: number]: VideoDetails | null }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
 
@@ -73,6 +79,21 @@ const AddCoursePage = () => {
     const newLinks = [...videoLinks];
     newLinks[index] = value;
     setVideoLinks(newLinks);
+
+    const videoId = getYouTubeVideoId(value);
+    if (videoId) {
+      fetchVideoDetails(videoId).then((details) => {
+        setVideoDetails((prev) => ({
+          ...prev,
+          [index]: details,
+        }));
+      });
+    } else {
+      setVideoDetails((prev) => ({
+        ...prev,
+        [index]: null,
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -155,7 +176,20 @@ const AddCoursePage = () => {
         description,
         price: parseFloat(price),
         bannerUrl,
-        videoLinks: videoLinks.filter((link) => link.trim()),
+        videoLinks: videoLinks
+          .map((link, index) => {
+            if (!link.trim()) return null;
+            const details = videoDetails[index];
+            return {
+              url: link,
+              title: details?.title || "Untitled Video",
+              duration: details?.duration || "N/A",
+              viewCount: details?.viewCount || "0",
+              thumbnail: details?.thumbnail || "",
+              likeCount: "0" // Default as we didn't fetch this in add-course originally, or simple schema update
+            };
+          })
+          .filter((item) => item !== null),
         createdAt: new Date(),
       };
 
@@ -191,305 +225,310 @@ const AddCoursePage = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl mb-4 border border-cyan-400/30">
-            <FaBook className="text-3xl text-cyan-400" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-black/40 border border-cyan-500/30 rounded-2xl mb-4 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-sm">
+            <FaBook className="text-4xl text-cyan-400" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-3">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase mb-3 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
             Create Your Course
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Share your knowledge with learners worldwide. Fill in the details below to launch your course.
+          <p className="text-slate-400 font-mono text-sm tracking-wider max-w-2xl mx-auto">
+            INITIATE EDUCATIONAL PROTOCOL: SHARE KNOWLEDGE ON THE CHAIN
           </p>
         </div>
 
         {/* Wallet Connection Alert */}
         {!userAddress && (
-          <div className="max-w-4xl mx-auto mb-6">
-            <div className="bg-cyan-500/10 border border-cyan-400/30 rounded-xl p-4 flex items-center gap-3">
-              <FaInfoCircle className="text-cyan-400 text-xl flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-cyan-300 font-medium">Connect your wallet to continue</p>
-                <p className="text-gray-400 text-sm">You need to connect your wallet before creating a course.</p>
+          <div className="max-w-4xl mx-auto mb-8">
+            <GlowCard className="bg-red-950/20 border-red-500/30 p-6 flex flex-col md:flex-row items-center gap-6" borderColors={{ first: "#ef4444", second: "#fca5a5" }}>
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <FaInfoCircle className="text-red-400 text-2xl" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-red-400 font-bold uppercase tracking-wider mb-1">Wallet Disconnected</h3>
+                <p className="text-gray-400 text-sm">Authentication required. Connect your wallet to deploy a course node.</p>
               </div>
               <WalletButton />
-            </div>
+            </GlowCard>
           </div>
         )}
 
         {/* Main Form Card */}
-        <Card className="max-w-4xl mx-auto border border-cyan-400/30 bg-black/40 backdrop-blur-xl text-white rounded-2xl shadow-2xl shadow-cyan-500/10 overflow-hidden">
-          <CardContent className="p-0">
-            {/* Progress Steps */}
-            <div className="bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border-b border-cyan-400/20 px-8 py-6">
-              <div className="flex items-center justify-between max-w-2xl mx-auto">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 border-2 border-cyan-400 flex items-center justify-center font-bold text-cyan-400">
-                    1
-                  </div>
-                  <span className="text-sm font-medium text-gray-300 hidden sm:inline">Details</span>
+        <GlowCard
+          className="max-w-4xl mx-auto bg-black/60 backdrop-blur-xl border-cyan-500/20 p-0 overflow-hidden"
+          borderColors={{ first: "#06b6d4", second: "#8b5cf6" }}
+        >
+          {/* Progress Steps */}
+          <div className="bg-black/40 border-b border-cyan-500/20 px-8 py-6">
+            <div className="flex items-center justify-between max-w-2xl mx-auto">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-cyan-500/20 border border-cyan-400 flex items-center justify-center font-bold text-cyan-400 text-sm font-mono">
+                  01
                 </div>
-                <div className="h-0.5 flex-1 bg-cyan-400/20 mx-4"></div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 border-2 border-cyan-400/50 flex items-center justify-center font-bold text-cyan-400/50">
-                    2
-                  </div>
-                  <span className="text-sm font-medium text-gray-400 hidden sm:inline">Banner</span>
+                <span className="text-xs font-bold text-cyan-100 uppercase tracking-widest hidden sm:inline">Details</span>
+              </div>
+              <div className="h-px flex-1 bg-cyan-800/50 mx-4"></div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-cyan-900/20 border border-cyan-800 flex items-center justify-center font-bold text-cyan-700 text-sm font-mono">
+                  02
                 </div>
-                <div className="h-0.5 flex-1 bg-cyan-400/20 mx-4"></div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/20 border-2 border-cyan-400/50 flex items-center justify-center font-bold text-cyan-400/50">
-                    3
-                  </div>
-                  <span className="text-sm font-medium text-gray-400 hidden sm:inline">Content</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:inline">Banner</span>
+              </div>
+              <div className="h-px flex-1 bg-cyan-800/50 mx-4"></div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-cyan-900/20 border border-cyan-800 flex items-center justify-center font-bold text-cyan-700 text-sm font-mono">
+                  03
                 </div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest hidden sm:inline">Content</span>
               </div>
             </div>
+          </div>
 
-            <div className="p-8 space-y-10">
-              {/* Course Details Section */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Course Details</h2>
+          <div className="p-8 space-y-12">
+            {/* Course Details Section */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-cyan-900/50"></div>
+                <h2 className="text-xl font-bold text-cyan-400 uppercase tracking-[0.2em] px-4 border border-cyan-500/30 py-1 rounded-full bg-cyan-950/30">
+                  Course Metadata
+                </h2>
+                <div className="h-px flex-1 bg-cyan-900/50"></div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="course-title" className="text-xs font-bold text-cyan-500 uppercase tracking-widest">
+                    Course Title <span className="text-red-400">*</span>
+                  </Label>
+                  <Input
+                    id="course-title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g., ADVANCED SOLIDITY PROTOCOLS"
+                    disabled={isLoading || !userAddress}
+                  />
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="course-description" className="text-xs font-bold text-cyan-500 uppercase tracking-widest">
+                    Description <span className="text-red-400">*</span>
+                  </Label>
+                  <Textarea
+                    id="course-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Input course objectives and curriculum data..."
+                    disabled={isLoading || !userAddress}
+                    className="min-h-[150px]"
+                  />
+                  <p className="text-[10px] font-mono text-cyan-700 text-right">{description.length} CHARS</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="course-price" className="text-xs font-bold text-cyan-500 uppercase tracking-widest flex items-center gap-2">
+                    <FaMoneyBillWave /> Price (FLOW) <span className="text-red-400">*</span>
+                  </Label>
+                  <Input
+                    id="course-price"
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0.0"
+                    disabled={isLoading || !userAddress}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Banner Upload Section */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-cyan-900/50"></div>
+                <h2 className="text-xl font-bold text-cyan-400 uppercase tracking-[0.2em] px-4 border border-cyan-500/30 py-1 rounded-full bg-cyan-950/30">
+                  Visual Asset
+                </h2>
+                <div className="h-px flex-1 bg-cyan-900/50"></div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8 items-start">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="course-title" className="text-base font-medium text-gray-300 flex items-center gap-2">
-                      Course Title <span className="text-red-400">*</span>
+                    <Label htmlFor="course-banner" className="text-xs font-bold text-cyan-500 uppercase tracking-widest">
+                      Upload Image <span className="text-red-400">*</span>
                     </Label>
-                    <Input
-                      id="course-title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g., Advanced Solidity Programming"
-                      className="bg-black/50 border-cyan-400/30 focus:border-cyan-400 hover:border-cyan-400/50 h-12 text-base text-white placeholder:text-gray-500 transition-all rounded-lg"
-                      disabled={isLoading || !userAddress}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="course-description" className="text-base font-medium text-gray-300 flex items-center gap-2">
-                      Course Description <span className="text-red-400">*</span>
-                    </Label>
-                    <textarea
-                      id="course-description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Describe what students will learn in this course. Include key topics, skills, and outcomes..."
-                      className="w-full text-base bg-black/50 border border-cyan-400/30 focus:border-cyan-400 hover:border-cyan-400/50 rounded-lg p-4 min-h-[140px] resize-none text-white placeholder:text-gray-500 transition-all focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
-                      disabled={isLoading || !userAddress}
-                    />
-                    <p className="text-xs text-gray-500 text-right">{description.length} characters</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="course-price" className="text-base font-medium text-gray-300 flex items-center gap-2">
-                      <FaMoneyBillWave /> Course Price (in FLOW) <span className="text-red-400">*</span>
-                    </Label>
-                    <Input
-                      id="course-price"
-                      type="number"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="e.g., 10"
-                      className="bg-black/50 border-cyan-400/30 focus:border-cyan-400 hover:border-cyan-400/50 h-12 text-base text-white placeholder:text-gray-500 transition-all rounded-lg"
-                      disabled={isLoading || !userAddress}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Banner Upload Section */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Course Banner</h2>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-8 items-start">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="course-banner" className="text-base font-medium text-gray-300 flex items-center gap-2">
-                        Upload Banner <span className="text-red-400">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="course-banner"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleBannerChange}
-                          className="bg-black/50 border-cyan-400/30 focus:border-cyan-400 hover:border-cyan-400/50 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-cyan-500/20 file:text-cyan-300 file:font-medium hover:file:bg-cyan-500/30 file:cursor-pointer h-12 cursor-pointer transition-all rounded-lg"
-                          disabled={isLoading || !userAddress}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-cyan-500/5 border border-cyan-400/20 rounded-xl p-4">
-                      <p className="text-sm text-cyan-300 font-medium mb-3 flex items-center gap-2">
-                        <FaImage className="text-cyan-400" />
-                        Image Requirements
-                      </p>
-                      <ul className="text-xs text-gray-400 space-y-2">
-                        <li className="flex items-start gap-2">
-                          <span className="text-cyan-400 mt-0.5">•</span>
-                          <span>Aspect ratio: 1:1 (square)</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-cyan-400 mt-0.5">•</span>
-                          <span>Max file size: 3MB</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-cyan-400 mt-0.5">•</span>
-                          <span>Formats: JPG, PNG, WebP</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-cyan-400 mt-0.5">•</span>
-                          <span>Recommended: 800x800px minimum</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-center">
-                    {bannerPreview ? (
-                      <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
-                        <div className="relative">
-                          <Image
-                            src={bannerPreview}
-                            alt="Banner Preview"
-                            width={280}
-                            height={280}
-                            className="rounded-2xl object-cover border-2 border-cyan-400/50 shadow-2xl transition-transform group-hover:scale-105"
-                          />
-                          <div className="absolute -top-2 -right-2 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-full p-2.5 shadow-lg">
-                            <FaCheckCircle className="text-lg" />
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="w-full max-w-[280px] aspect-square border-2 border-dashed border-cyan-400/30 rounded-2xl flex items-center justify-center bg-black/20 hover:border-cyan-400/50 transition-all">
-                        <div className="text-center p-8">
-                          <div className="w-20 h-20 mx-auto mb-4 bg-cyan-500/10 rounded-2xl flex items-center justify-center">
-                            <FaImage className="text-4xl text-cyan-400/40" />
-                          </div>
-                          <p className="text-gray-400 text-sm font-medium">Preview</p>
-                          <p className="text-gray-500 text-xs mt-1">Upload to see preview</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </section>
-
-              {/* Video Content Section */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-1 h-8 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-cyan-400">Course Content</h2>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                    <div className="flex-1 max-w-xs space-y-2">
-                      <Label htmlFor="video-count" className="text-base font-medium text-gray-300 flex items-center gap-2">
-                        Number of Videos <span className="text-red-400">*</span>
-                      </Label>
+                    <div className="relative">
                       <Input
-                        id="video-count"
-                        type="number"
-                        min="1"
-                        max="50"
-                        value={videoCount}
-                        onChange={handleVideoCountChange}
-                        className="bg-black/50 border-cyan-400/30 focus:border-cyan-400 hover:border-cyan-400/50 h-12 text-base text-white transition-all rounded-lg"
+                        id="course-banner"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerChange}
+                        className="file:mr-4 file:py-1 file:px-4 file:rounded-md file:border-0 file:bg-cyan-900/40 file:text-cyan-400 file:font-mono file:text-xs hover:file:bg-cyan-800/40 cursor-pointer pt-2"
                         disabled={isLoading || !userAddress}
                       />
                     </div>
-                    {videoCount > 0 && (
-                      <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/30 rounded-xl px-5 py-3 flex items-center gap-2">
-                        <FaYoutube className="text-red-500 text-xl" />
-                        <p className="text-sm text-cyan-300 font-medium">
-                          {videoCount} video{videoCount !== 1 ? "s" : ""} to add
-                        </p>
-                      </div>
-                    )}
                   </div>
 
-                  {videoCount > 0 && (
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent">
-                      {videoLinks.map((link, index) => (
-                        <div
-                          key={index}
-                          className="group bg-black/20 border border-cyan-400/20 rounded-xl p-5 hover:border-cyan-400/40 hover:bg-black/30 transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <Label
-                              htmlFor={`video-link-${index}`}
-                              className="flex items-center gap-2 text-sm font-semibold text-cyan-300"
-                            >
-                              <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                                <FaYoutube className="text-red-500" />
-                              </div>
-                              Video {index + 1}
-                            </Label>
-                          </div>
-                          <Input
-                            id={`video-link-${index}`}
-                            type="url"
-                            value={link}
-                            onChange={(e) => handleVideoLinkChange(index, e.target.value)}
-                            placeholder="https://www.youtube.com/watch?v=..."
-                            className="bg-black/50 border-cyan-400/30 focus:border-cyan-400 hover:border-cyan-400/50 h-11 text-sm text-white placeholder:text-gray-500 transition-all rounded-lg"
-                            disabled={isLoading || !userAddress}
-                          />
+                  <div className="bg-cyan-950/20 border border-cyan-900/30 rounded-xl p-4">
+                    <p className="text-xs text-cyan-400 font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <FaImage /> Specs
+                    </p>
+                    <ul className="text-[10px] font-mono text-slate-400 space-y-2">
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500 rounded-full"></div> 1:1 ASPECT RATIO PREFERRED</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500 rounded-full"></div> MAX SIZE: 3MB</li>
+                      <li className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500 rounded-full"></div> PNG, JPG, WEBP SUPPORTED</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  {bannerPreview ? (
+                    <div className="relative group">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500"></div>
+                      <div className="relative">
+                        <Image
+                          src={bannerPreview}
+                          alt="Banner Preview"
+                          width={280}
+                          height={280}
+                          className="rounded-xl object-cover border border-cyan-500/30 shadow-2xl"
+                        />
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-black rounded-full p-1 shadow-lg border border-green-400">
+                          <FaCheckCircle className="text-sm" />
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full max-w-[280px] aspect-square border-2 border-dashed border-cyan-900/40 rounded-xl flex items-center justify-center bg-black/40 hover:border-cyan-500/30 transition-all duration-300 group">
+                      <div className="text-center p-8">
+                        <FaImage className="text-4xl text-cyan-900/50 mb-4 mx-auto group-hover:text-cyan-500/50 transition-colors" />
+                        <p className="text-cyan-900 text-xs font-mono group-hover:text-cyan-600 transition-colors">NO_DATA_UPLOADED</p>
+                      </div>
                     </div>
                   )}
                 </div>
-              </section>
-
-              {/* Upload Progress */}
-              {uploadProgress && (
-                <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/30 rounded-xl p-5 flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                    <FaSpinner className="text-cyan-400 animate-spin text-xl" />
-                  </div>
-                  <div>
-                    <p className="text-cyan-300 font-semibold text-base">{uploadProgress}</p>
-                    <p className="text-gray-400 text-sm">Please wait while we process your course...</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <div className="pt-6 border-t border-cyan-400/20">
-                <Button
-                  onClick={handleSubmit}
-                  className="w-full h-14 text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-cyan-500/30 transition-all transform hover:scale-[1.02] hover:shadow-cyan-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none active:scale-[0.98]"
-                  disabled={isLoading || !userAddress}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center gap-3">
-                      <FaSpinner className="animate-spin text-xl" />
-                      Creating Your Course...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-3">
-                      <FaPlusCircle className="text-xl" />
-                      Create Course & Publish
-                    </span>
-                  )}
-                </Button>
-                <p className="text-center text-xs text-gray-500 mt-3">
-                  By creating this course, you agree to pay {videoCount} FLOW for content quality
-                </p>
               </div>
+            </section>
+
+            {/* Video Content Section */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px flex-1 bg-cyan-900/50"></div>
+                <h2 className="text-xl font-bold text-cyan-400 uppercase tracking-[0.2em] px-4 border border-cyan-500/30 py-1 rounded-full bg-cyan-950/30">
+                  Content Nodes
+                </h2>
+                <div className="h-px flex-1 bg-cyan-900/50"></div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                  <div className="flex-1 max-w-xs space-y-2">
+                    <Label htmlFor="video-count" className="text-xs font-bold text-cyan-500 uppercase tracking-widest">
+                      Total Modules <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      id="video-count"
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={videoCount}
+                      onChange={handleVideoCountChange}
+                      disabled={isLoading || !userAddress}
+                    />
+                  </div>
+                  {videoCount > 0 && (
+                    <div className="bg-purple-950/20 border border-purple-500/20 rounded-lg px-4 py-3 flex items-center gap-2 mb-1">
+                      <FaYoutube className="text-red-500 text-lg" />
+                      <p className="text-xs text-purple-300 font-mono">
+                        {videoCount} LINKSLOTS ALLOCATED
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {videoCount > 0 && (
+                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-cyan-900/50 scrollbar-track-transparent">
+                    {videoLinks.map((link, index) => (
+                      <div
+                        key={index}
+                        className="group bg-black/40 border border-cyan-900/30 rounded-lg p-5 hover:border-cyan-500/30 transition-all hover:bg-cyan-950/10"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <Label
+                            htmlFor={`video-link-${index}`}
+                            className="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-wider"
+                          >
+                            <span className="text-cyan-700">#{index + 1}</span> Video URL
+                          </Label>
+                        </div>
+                        <Input
+                          id={`video-link-${index}`}
+                          type="url"
+                          value={link}
+                          onChange={(e) => handleVideoLinkChange(index, e.target.value)}
+                          placeholder="https://www.youtube.com/watch?v=..."
+                          disabled={isLoading || !userAddress}
+                        />
+                        {videoDetails[index] && (
+                          <div className="mt-3 flex items-center gap-4 text-[10px] font-mono text-slate-500 border-t border-white/5 pt-2">
+                            <div className="flex items-center gap-1.5">
+                              <FaClock className="text-cyan-700" />
+                              <span>{videoDetails[index]?.duration}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <FaEye className="text-cyan-700" />
+                              <span>{videoDetails[index]?.viewCount} views</span>
+                            </div>
+                            <div className="truncate max-w-[200px] text-cyan-600">
+                              {videoDetails[index]?.title}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Upload Progress */}
+            {uploadProgress && (
+              <div className="bg-cyan-950/30 border border-cyan-500/30 rounded-xl p-5 flex items-center gap-4 animate-pulse">
+                <div className="w-10 h-10 rounded-full bg-cyan-900/30 flex items-center justify-center border border-cyan-500/50">
+                  <FaSpinner className="text-cyan-400 animate-spin text-lg" />
+                </div>
+                <div>
+                  <p className="text-cyan-300 font-bold font-mono text-sm uppercase tracking-wider">{uploadProgress}</p>
+                  <p className="text-cyan-700 text-xs font-mono">PROCESSING BLOCKCHAIN TRANSACTION...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-6 border-t border-cyan-900/30">
+              <NeoCyberButton
+                onClick={handleSubmit}
+                className="w-full text-lg py-6"
+                disabled={isLoading || !userAddress}
+                variant="primary"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-3">
+                    <FaSpinner className="animate-spin text-xl" />
+                    EXECUTING PROTOCOL...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-3">
+                    <FaPlusCircle className="text-xl" />
+                    DEPLOY COURSE NODE
+                  </span>
+                )}
+              </NeoCyberButton>
+
+              <p className="text-center text-[10px] font-mono text-cyan-900 mt-4 uppercase tracking-widest">
+                FEE REQUIRED: {videoCount} FLOW // SMART CONTRACT VERIFICATION
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlowCard>
       </div>
     </div>
   );

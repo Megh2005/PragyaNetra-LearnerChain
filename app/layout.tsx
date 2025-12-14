@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Merriweather } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { WalletContextProvider } from "@/context/Wallet";
 
-const merriweather = Merriweather({ weight: "400", subsets: ["latin"] });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <WalletContextProvider>
-        <body className={merriweather.className}>
+        <body className={spaceGrotesk.className}>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"

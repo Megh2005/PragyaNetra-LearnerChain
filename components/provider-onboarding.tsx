@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { InteractiveHoverButton } from "./ui/interactive-hover-button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
@@ -24,7 +23,6 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { connectWallet } from "@/utils/connectWallet";
-import { getWalletBalance } from "@/lib/balance";
 import { toast } from "sonner";
 import {
   FaGoogle,
@@ -33,10 +31,9 @@ import {
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { useRouter } from "next/navigation";
-import { Contract, parseEther } from "ethers";
-import { ABI } from "@/lib/abi";
+import { NeoCyberButton } from "./ui/neo-cyber-button";
 
 interface ProviderOnboardingProps {
   initialOpen?: boolean;
@@ -60,7 +57,6 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
   const [signer, setSigner] = useState<any>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [open, setOpen] = useState(initialOpen);
-  const [isPaying, setIsPaying] = useState(false);
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
@@ -142,57 +138,30 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
 
   const handleConnectWallet = async () => {
     await connectWallet(setIsConnected, setUserAddress, setSigner);
-    if (userAddress) {
-      const walletBalance = await getWalletBalance(userAddress);
-      setBalance(walletBalance);
-    }
   };
 
   const handleWalletNext = async () => {
-    if (!isConnected || !userAddress || !username || !signer) {
+    if (!isConnected || !userAddress || !username) {
       toast.error("Please connect your wallet first.");
       return;
     }
 
-    const fee = 10;
-    const balanceFloat = parseFloat(balance || "0");
-
-    if (balanceFloat < fee) {
-        toast.error(`You need at least ${fee} FLOW to join.`);
-        return;
-    }
-
-    setIsPaying(true);
-    const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
-    const contract = new Contract(contractAddress, ABI, signer);
-    const toastId = toast.loading("Processing payment...");
+    const toastId = toast.loading("Saving profile...");
 
     try {
-        const tx = await contract.stake({
-            value: parseEther(fee.toString()),
-        });
-
-        const transactionId = tx.hash;
-
-        await tx.wait();
-        toast.success("Payment successful!", { id: toastId });
-
-        await setDoc(
-            doc(db, "providers", username),
-            {
-                walletAddress: userAddress,
-                stakeAmount: fee,
-                stakeTransactionId: transactionId,
-            },
-            { merge: true }
-        );
-        onFinish();
+      await setDoc(
+        doc(db, "providers", username),
+        {
+          walletAddress: userAddress,
+        },
+        { merge: true }
+      );
+      toast.success("Profile saved successfully!", { id: toastId });
+      onFinish();
 
     } catch (error) {
-        console.error("Payment failed:", error);
-        toast.error("Payment failed. Please try again.", { id: toastId });
-    } finally {
-        setIsPaying(false);
+      console.error("Error saving profile:", error);
+      toast.error("Failed to save profile.", { id: toastId });
     }
   };
 
@@ -201,18 +170,12 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
     router.push("/dashboard");
   };
 
-  useEffect(() => {
-    if (isConnected && userAddress) {
-      getWalletBalance(userAddress).then(setBalance);
-    }
-  }, [isConnected, userAddress]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <InteractiveHoverButton className="border-2 border-cyan-400">
-          Provider
-        </InteractiveHoverButton>
+        <NeoCyberButton variant="primary" className="w-full text-lg">
+          ACCESS_PROVIDER_NODE
+        </NeoCyberButton>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] flex flex-col items-center justify-center bg-black/50 backdrop-blur-lg border-cyan-400 text-white">
         <DialogHeader className="text-center">
@@ -224,12 +187,14 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <FaGoogle className="mr-2" /> Step 1: Authenticate with Google
               </h3>
-              <InteractiveHoverButton
-                onClick={handleGoogleSignIn}
-                className="w-full"
-              >
-                Sign in with Google
-              </InteractiveHoverButton>
+              <div className="w-full">
+                <NeoCyberButton
+                  onClick={handleGoogleSignIn}
+                  className="w-full"
+                >
+                  Sign in with Google
+                </NeoCyberButton>
+              </div>
             </div>
           )}
           {step === 2 && (
@@ -289,49 +254,43 @@ const ProviderOnboarding: React.FC<ProviderOnboardingProps> = ({
                   />
                 </div>
               </div>
-              <div className="flex justify-between mt-4 w-full">
-                <InteractiveHoverButton onClick={prevStep}>
+              <div className="flex justify-between mt-4 w-full gap-4">
+                <NeoCyberButton onClick={prevStep} variant="secondary">
                   Previous
-                </InteractiveHoverButton>
-                <InteractiveHoverButton
+                </NeoCyberButton>
+                <NeoCyberButton
                   onClick={handleSaveProfile}
                   disabled={!usernameAvailable}
                 >
                   Next
-                </InteractiveHoverButton>
+                </NeoCyberButton>
               </div>
             </div>
           )}
           {step === 3 && (
             <div className="flex flex-col items-center justify-center">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <FaWallet className="mr-2" /> Step 3: Connect & Pay
+                <FaWallet className="mr-2" /> Step 3: Connect Wallet
               </h3>
               <p className="text-center text-sm text-gray-400 mb-4">
-                A one-time fee of 10 FLOW is required to become a provider.
+                Connect your wallet to receive payments and sign certificates.
               </p>
-              <InteractiveHoverButton
+              <NeoCyberButton
                 onClick={handleConnectWallet}
-                className="w-full"
+                className="w-full text-xs" // Reduced font size for potential long addresses
                 disabled={isConnected}
               >
                 {isConnected
-                  ? `Connected: ${userAddress.substring(
-                      0,
-                      6
-                    )}...${userAddress.substring(userAddress.length - 4)}`
+                  ? `Connected: ${userAddress.substring(0, 6)}...`
                   : "Connect Wallet"}
-              </InteractiveHoverButton>
-              {balance && (
-                <p className="mt-4 text-lg">Balance: {balance} FLOW</p>
-              )}
-              <div className="flex justify-between mt-4 w-full">
-                <InteractiveHoverButton onClick={prevStep}>
+              </NeoCyberButton>
+              <div className="flex justify-between mt-4 w-full gap-4">
+                <NeoCyberButton onClick={prevStep} variant="secondary">
                   Previous
-                </InteractiveHoverButton>
-                <InteractiveHoverButton onClick={handleWalletNext} disabled={!isConnected || isPaying || parseFloat(balance || "0") < 10}>
-                  {isPaying ? "Processing..." : "Pay 10 FLOW & Finish"}
-                </InteractiveHoverButton>
+                </NeoCyberButton>
+                <NeoCyberButton onClick={handleWalletNext} disabled={!isConnected}>
+                  Finish
+                </NeoCyberButton>
               </div>
             </div>
           )}
