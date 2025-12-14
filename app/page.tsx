@@ -80,7 +80,7 @@ export default function Home() {
                 INITIATE LEARNING
               </NeoCyberButton>
             </Link>
-            <Link href="/about">
+            <Link href="/system-docs">
               <NeoCyberButton variant="secondary" className="w-48">
                 SYSTEM DOCS
               </NeoCyberButton>
@@ -94,10 +94,10 @@ export default function Home() {
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-6xl mt-20"
         >
           {[
-            { label: "Total Value Locked", value: "$4.2M+", color: "text-cyan-400" },
-            { label: "Active Learners", value: "125k+", color: "text-purple-400" },
-            { label: "Community Courses", value: "850+", color: "text-pink-400" },
-            { label: "PGN Rewards Distributed", value: "15M", color: "text-emerald-400" },
+            { label: "Total Value Locked", value: "$100K+", color: "text-cyan-400" },
+            { label: "Active Learners", value: "100+", color: "text-purple-400" },
+            { label: "Community Courses", value: "50+", color: "text-pink-400" },
+            { label: "Rewards Distributed", value: "100+", color: "text-emerald-400" },
           ].map((stat, i) => (
             <GlowCard key={i} className="p-8 flex flex-col items-center justify-center text-center group">
               <h3 className={cn("text-4xl font-bold mb-2 tracking-tight", stat.color, "drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]")}>
