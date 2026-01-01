@@ -72,7 +72,6 @@ interface Provider {
 }
 
 const CourseDetailPage = ({ params }: { params: Promise<{ id: string }> }) => {
-  // @ts-expect-error React 19 use API
   const { id } = React.use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
