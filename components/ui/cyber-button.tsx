@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-interface CyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface CyberButtonProps extends HTMLMotionProps<"button"> {
     children: React.ReactNode;
     variant?: "primary" | "secondary" | "danger" | "ghost";
 }
