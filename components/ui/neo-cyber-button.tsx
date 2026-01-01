@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-interface NeoCyberButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface NeoCyberButtonProps extends HTMLMotionProps<"button"> {
     children: React.ReactNode;
     variant?: "primary" | "secondary" | "danger" | "ghost";
     className?: string;
